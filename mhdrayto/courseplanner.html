@@ -1,0 +1,149 @@
+<!doctype html>
+<!--
+Name: Michael Drayton
+assignment: course planner program for cis255
+filename: APIprogram.html
+-->
+
+	<head>
+	<!--copied from http://getbootstrap.com/getting-started/ and used in a very basic way-->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+				integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	</head>
+	
+	<body>
+		<h1>Course Planner</h1>
+		<table border="1">
+			<tr>
+				<td>Courses Taken <br />
+					<input type="text" name="taken" id="taken" />
+				</td>
+				
+				<td>Courses Needed
+					<p id="needed"></p>
+				</td>
+			</tr>
+			<tr>
+				<td>Courses Available<br />
+					<select id="id02"></select>
+				</td>
+				<td>Courses Not Available
+					<p id="unavailable"></p>
+				</td>
+			</tr>
+		</table>
+		<button onClick="showNeeded(neededCourses);">Show Courses Needed</button>
+			
+			<script>
+				var neededCourses = ["cs105", "cis255", "cis355", "cs116", "cs216", "cs316"];	// array to hold examples of courses needed to graduate
+				var unavailableCourses = [ "cs319", "cis496", "cs500", "cs178", "cis245"];			// Array to hold examples of unavailable courses
+				
+				// stringConversion used in output here
+				document.getElementById("unavailable").innerHTML = stringConversion(unavailableCourses);
+				
+				neededCourses = neededCourses.sort();
+				
+				// Function takes information compiled from needed courses and user-entered courses taken for comparison against one another.
+				function courseCompare(needed, taken)
+				{
+					var required = [];
+					var matched = false;
+					
+					// loops compare needed to taken, when it finds a match, inner loop breaks and outer loop continues execution. Inner loop will continue exectuion until
+					// ending condition otherwise.
+					for(var i = 0; i < needed.length; i++)
+					{
+						for(var j = 0; j < taken.length; j++)
+						{
+							if(needed[i] == taken[j])	// Match is found if condition is true.
+								{
+									matched = true;		// set matched to true and break from inner loop.
+									break;
+								}
+								
+						}
+						
+						if(!matched)	// if matched is not true, take the element from needed[i] and store it in required[]
+							required.push(needed[i]);
+							
+						matched = false;	// resets matched to false just in case
+					}
+					
+					// Returns required array
+					return required;
+				}
+				
+				// function converts the passed-in array into a single string rather than an array of values for display purposes. Built
+				// based on version found in template provided by gpcourser
+				function stringConversion(coursesIn) 
+				{
+					var courseString = "";
+					
+					for(var i = 0; i < coursesIn.length; i++)
+					{
+						courseString = courseString + " " + coursesIn[i];
+					}
+					
+					return courseString.trim();
+				}
+				
+				function showNeeded(neededCourses)
+				{
+					var coursesTaken = document.getElementById("taken").value;				// Pulls in the user-entered text for taken courses
+					coursesTaken = coursesTaken.split(" ");												// Takes the string value stored in coursesTaken and splits them at an empty space
+					neededCourse = courseCompare(neededCourses, coursesTaken);		// Compares values in these arrays to determine what ones to display for remaining needed courses
+					
+					// used to format neededCourses for output
+					document.getElementById("needed").innerHTML = stringConversion(neededCourse);
+				}
+				
+				
+			<!-- javascript solution: creates new elements with attributes -->
+			var xmlhttp = [];
+			var apiRequest = ["CS", "CIS", "MATH", "COMM", "RPW", "ACCT", "ECON", "LAW", "MGT", "PHIL", "MKT"];
+			
+			// Loop constructs the output in the dropdown box to show courses with numbers, meet, times, term, and professors; all of this is pulled from https://api.svsu.edu
+			// Part of this structure built in-class, loop structure built later and incorporates in-class construction.
+			for(var i = 0; i < apiRequest.length; i++) 
+			{
+				xmlhttp[i] = new XMLHttpRequest();
+				var url = "https://api.svsu.edu/courses?prefix=" + apiRequest[i] + "&term=17/WI";
+				
+				xmlhttp[i].open("GET", url, true);
+				
+				xmlhttp[i].onreadystatechange = function() 
+				{
+					if (this.readyState == 4 && this.status == 200) 
+					{
+						var apiArray = JSON.parse(this.responseText);
+						showWinter(apiArray);
+					}
+				}
+				
+				xmlhttp[i].send();
+			}
+			
+			// Function formats the parsed data from the api and puts it into the drop-down box on the page. Shows only winter term courses.
+			function showWinter(apiArray) 
+			{
+				var out = "";
+				var i;
+				for(i = 0; i < apiArray.courses.length; i++) 
+				{
+					var newP = document.createElement("option");
+					newP.setAttribute("value", i);
+					var newText 
+						= document.createTextNode(arr.courses[i].prefix + " " 
+						+ apiArray.courses[i].courseNumber + " " 
+						+ apiArray.courses[i].term + " " 
+						+ apiArray.courses[i].meetingTimes[0].days + " " 
+						+ apiArray.courses[i].meetingTimes[0].startTime + " " 
+						+ apiArray.courses[i].meetingTimes[0].instructor); 
+					document.getElementById("id02").appendChild(newP);
+					newP.appendChild(newText);
+				}
+			}
+			</script>
+		</table>
+	</body>
+</html>
